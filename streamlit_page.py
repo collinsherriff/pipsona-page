@@ -76,7 +76,7 @@ if not st.session_state.loading_done:
     
     image_base64 = get_base64_image("main.jpg")
     
-    time.sleep(2)  # Simulate a delay for loading
+    time.sleep(2)  # Simulate a delay for loadings
     st.session_state.loading_done = True
     st.experimental_rerun()
 
