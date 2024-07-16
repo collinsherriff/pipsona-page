@@ -7,32 +7,74 @@ if "loading_done" not in st.session_state:
     st.session_state.loading_done = False
 
 if not st.session_state.loading_done:
-    # Display loading animation
+    # Display loading animation with full-screen image
     st.markdown("""
         <style>
-            @keyframes loader {
-                0% { width: 0%; }
-                100% { width: 100%; }
+            .full-screen-image-container {
+                position: fixed;
+                top: 0;
+                left: 0;
+                width: 100%;
+                height: 100%;
+                display: flex;
+                justify-content: center;
+                align-items: center;
+                z-index: 9999;
+                background-color: black;
+            }
+            .full-screen-image-container img {
+                width: 100%;
+                height: 100%;
+                object-fit: cover;
             }
             .loader {
-                width: 100%;
-                background: #f3f3f3;
-                border: 1px solid #ccc;
+                position: absolute;
+                bottom: 20px;
+                width: 80%;
+                margin-left: 10%;
+                background: #333;
+                border: 1px solid #555;
                 border-radius: 5px;
                 overflow: hidden;
+                z-index: 10000;
             }
             .loader-bar {
                 height: 30px;
                 background: linear-gradient(90deg, #4caf50, #81c784);
-                animation: loader 1s linear forwards;
+                animation: loader 2s linear forwards;
+            }
+            .centered-text {
+                position: absolute;
+                bottom: 60px;
+                width: 100%;
+                text-align: center;
+                color: white;
+                z-index: 10000;
+            }
+            @keyframes loader {
+                0% { width: 0%; }
+                100% { width: 100%; }
             }
         </style>
-        <div class="loader">
-            <div class="loader-bar"></div>
+        <div class="full-screen-image-container">
+            <img src="data:image/png;base64,{image_base64}" alt="Loading Image">
+            <div class="loader">
+                <div class="loader-bar"></div>
+            </div>
+            <div class="centered-text">Loading PiP Personality Test... Please wait</div>
         </div>
-        <br/>
-        <div style="text-align:center">Loading PiP Personality Test... Please wait</div>
     """, unsafe_allow_html=True)
+    
+    # Convert image to base64
+    import base64
+    from io import BytesIO
+    from PIL import Image
+    
+    def get_base64_image(image_path):
+        with open(image_path, "rb") as img_file:
+            return base64.b64encode(img_file.read()).decode()
+    
+    image_base64 = get_base64_image("main.jpg")
     
     time.sleep(2)  # Simulate a delay for loading
     st.session_state.loading_done = True
@@ -98,7 +140,7 @@ st.markdown("""
 st.sidebar.image("logopixel2.png", use_column_width=True)
 st.sidebar.markdown("<hr>", unsafe_allow_html=True)
 st.sidebar.title("Navigation")
-app_mode = st.sidebar.radio("Select section", ["PiP Personality Quiz", "Submit a Coinfessions"])
+app_mode = st.sidebar.radio("Select section", ["PiP Personality Quiz", "Submit a Coinfessions", "How it works"])
 st.sidebar.markdown("<hr>", unsafe_allow_html=True)
 
 # Page navigation
@@ -158,3 +200,39 @@ elif app_mode == "Submit a Coinfessions":
     if st.button("Submit Coinfession"):
         st.write("Thank you for your submission!")
         # Here, you could add code to handle the coinfession submission, such as saving it to a database or sending it via email.
+        
+elif app_mode == "How it works":
+    st.title("About")
+    st.write("""
+
+    To match individuals to predefined personas based on their OCEAN scores, we employ a systematic approach that calculates the Euclidean distance between the given OCEAN score and each persona's score. This distance measure is transformed into an inverse distance to emphasize closer matches. By normalizing these inverse distances, we derive percentage matches that quantify how closely an individual's traits align with each persona. This method ensures an accurate and interpretable mapping, providing a clear understanding of an individual's alignment with each persona.
+
+    ## Formula and Algorithm
+
+    ### Normalize OCEAN Score:
+    Ensure each score is within the 1-5 range.
+
+    ### Euclidean Distance:
+    """)
+    st.latex(r'''
+    \text{Distance}_{\text{persona}} = \sqrt{\sum_{i=1}^{5} (\text{score}_i - \text{persona\_score}_i)^2}
+    ''')
+
+    st.write("### Inverse Distance:")
+    st.latex(r'''
+    \text{Inverse Distance}_{\text{persona}} = \frac{1}{\text{Distance}_{\text{persona}}}
+    ''')
+
+    st.write("""
+    Handle zero distances by setting the inverse distance to a very large number.
+
+    ### Total Inverse Distance:
+    """)
+    st.latex(r'''
+    \text{Total Inverse Distance} = \sum_{\text{persona}} \text{Inverse Distance}_{\text{persona}}
+    ''')
+
+    st.write("### Percentage Match:")
+    st.latex(r'''
+    \text{Percentage Match}_{\text{persona}} = \left( \frac{\text{Inverse Distance}_{\text{persona}}}{\text{Total Inverse Distance}} \right) \times 100
+    ''')
